@@ -1,0 +1,373 @@
+﻿
+@{
+	ViewData["Title"] = "Home Page";
+}
+
+<link href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="https://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.min.css" rel="stylesheet" type="text/css" />
+
+
+<div class="text-left">
+	<h4>Cadastro Caminhão</h4>
+
+</div>
+<div class="text-left">
+	<label>Modelo: </label>
+	<select id="cboUniModelo" class="form-control input-sm" style="width:auto;">
+		<option value="SELECIONETIPO">-- Selecione --</option>
+		<option value="FH">FH</option>
+		<option value="FM">FM</option>
+	</select>
+	<label>Ano Fabricação: </label>
+	<input type="text" id="txtAnoFab"  class="form-control input-sm" style="width:auto" />
+	<label>Ano / Modelo: </label>
+	<input type="text" id="txtAnoMod"  class="form-control input-sm" style="width:auto;"  />
+</div>
+<div style="margin-top:10px;">
+	<button type="button" id="idGravar" class="btn btn-success" onclick="Gravar()"><i class="fa fa fa-plus fa-lg"></i>Gravar</button>
+</div>
+<div class="text-center">
+	<div class="card-body">
+		<div class="table-responsive">
+			<table id="tblCaminhoes" width="100%" class="table table-bordered display"></table>
+		</div>
+	</div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalEditaCaminhao" role="dialog">
+	<div class="modal-dialog">
+
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Editar Caminhao   <a id="lblcodCaminhao" class="breadcrumb-item active"></a></h4>
+			</div>
+
+			<div class="modal-body">
+
+				<p>
+					<label>Modelo: </label>
+					<select id="cboModeloEdit" class="form-control input-sm" style="width:auto;">
+						<option value="SELECIONETIPO">-- Selecione --</option>
+						<option value="FH">FH</option>
+						<option value="FM">FM</option>
+					</select>
+					@*<input type="text" id="txtEditModelo" autofocus class="form-control input-sm" />*@
+					<label>Ano Fabricação: </label>
+					<input type="text" id="txtEditAnoFab" class="form-control input-sm" style="width:auto"/>
+					<label>Ano / Modelo: </label>
+					<input type="text" id="txtEditAnoModelo" class="form-control input-sm" style="width:auto"/>
+				</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" onclick="GravarEditarCaminhao()">Gravar</button>
+				<button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+
+@section Scripts{
+
+
+	<script src="https://code.jquery.com/ui/1.11.1/jquery-ui.min.js"></script>
+	<script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+
+
+
+	<script type="text/javascript" charset="utf-8">
+
+		var currentYear = new Date().getFullYear();
+		var nextYear = parseInt(currentYear);
+		nextYear = nextYear + 1;
+
+
+		$(document).ready(function () {
+			BuscaCaminhao();
+		});
+
+		$(function () {
+			$('#txtEditAnoFab').datepicker({
+				changeMonth: false,
+				changeYear: true,
+				showButtonPanel: true,
+				dateFormat: 'yyyy',
+				onClose: function (dateText, inst) {
+					var year = $(".ui-datepicker-year :selected").val();
+					/*var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();*/
+					$('#txtEditAnoFab').val(year);
+				}
+			}).focus(function () {
+				$(".ui-datepicker-month").hide();
+				$(".ui-datepicker-calendar").hide();
+			});
+
+		});
+
+		$(function () {
+			$('#txtAnoFab').datepicker({
+				changeMonth: false,
+				changeYear: true,
+				showButtonPanel: true,
+				dateFormat: 'yyyy',
+				yearRange: '' + currentYear + ':' + currentYear + '', // Optional Year Range
+				onClose: function (dateText, inst) {
+					var year = $(".ui-datepicker-year :selected").val();
+				/*var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();*/
+					$('#txtAnoFab').val(year);
+				}
+			}).focus(function () {
+				$(".ui-datepicker-month").hide();
+				$(".ui-datepicker-calendar").hide();
+			});
+							
+		});
+
+		$(document).ready(function () {
+			$('#txtAnoMod').focus(function () {
+				var anoEscolhido = $('#txtAnoFab').val();
+
+				if (anoEscolhido != "") {
+					$('#txtAnoMod')
+					anoEscolhido = anoEscolhido.substring(0, 4);
+					AnoModelo(anoEscolhido);
+				}
+			});
+
+			$('#txtEditAnoModelo').focus(function () {
+				var anoEscolhido = $('#txtEditAnoFab').val();
+
+				if (anoEscolhido != "") {
+					$('#txtEditAnoModelo')
+					anoEscolhido = anoEscolhido.substring(0, 4);
+					AnoModeloEdit(anoEscolhido);
+				}
+			});
+
+		});
+
+
+
+		function AnoModelo(dataSelecionado) {
+
+     		$(function () {
+				$('#txtAnoMod').datepicker({
+					changeMonth: false,
+					changeYear: true,
+					showButtonPanel: true,
+					yearRange: '' + currentYear + ':' + nextYear +'', // Optional Year Range
+					dateFormat: 'yyyy',
+					onClose: function (dateText, inst) {
+						var year = $(".ui-datepicker-year :selected").val();
+						$('#txtAnoMod').val(dataSelecionado + '/' + year);
+						//$(this).datepicker('setDate', new Date(year));
+					}
+				}).focus(function () {
+					$(".ui-datepicker-month").hide();
+					$(".ui-datepicker-calendar").hide();
+				});
+			});
+		}
+
+		function AnoModeloEdit(dataSelecionado) {
+
+			$(function () {
+				$('#txtEditAnoModelo').datepicker({
+					changeMonth: false,
+					changeYear: true,
+					showButtonPanel: true,
+					yearRange: '' + currentYear + ':' + nextYear + '', // Optional Year Range
+					dateFormat: 'yyyy',
+					onClose: function (dateText, inst) {
+						var year = $(".ui-datepicker-year :selected").val();
+						$('#txtEditAnoModelo').val(dataSelecionado + '/' + year);
+						//$(this).datepicker('setDate', new Date(year));
+					}
+				}).focus(function () {
+					$(".ui-datepicker-month").hide();
+					$(".ui-datepicker-calendar").hide();
+				});
+			});
+		}
+
+
+			function BuscaCaminhao() {
+
+				$.ajax({
+					url: '../Home/BuscaCaminhao',
+					type: 'post',
+					datatype: 'json',
+					success: function (data) {
+						/*var table = $('#tblCaminhoes').removeAttr('width').DataTable();*/
+						var table = $('#tblCaminhoes').DataTable(
+							{
+								autoWidth: true,
+								destroy: true,
+								select: true,
+								oLanguage: {
+									"sLengthMenu": "Mostrar _MENU_ registros por pagina",
+									"sZeroRecords": "Nenhum registro encontrado",
+									"sInfo": "Mostrando _START_ de _TOTAL_ registro(s)",
+									"sInfoFiltered": "(Filtro Total de _TOTAL_)",
+									"sInfoEmpty": "Mostrando 0 de 0 registros",
+									"sInfoThousands": ".",
+									"sLoadingRecords": "Carregando...",
+									"sProcessing": "Processando...",
+									"sSearch": "Pesquisar: ",
+									"oPaginate": {
+										"sFirst": "Inicio",
+										"sPrevious": "Anterior",
+										"sNext": "Proximo",
+										"sLast": "Ultimo"
+									}
+								},
+								data: JSON.parse(data),
+								paging: false,
+								fixedColumns: {
+									rightColumns: 1,
+									heightMatch: 'none'
+								},
+								columns: [
+									{ title: 'ID', data: "Id" },
+									{ title: 'MODELO', data: "Modelo" },
+									{ title: 'Ano Fabricação', data: "Ano_Fabricacao" },
+									{ title: 'Ano / Modelo', data: "Ano_Modelo" },
+									{ title: 'Quantidade Estoque', data: "Qtde_Estoque" }
+								],
+								"columnDefs": [
+									{
+										"targets": 5, //"Número referente a coluna, startando no 0"
+										"render": function (data, type, row) {
+											//Aqui tem um callback onde pode retornar o botão
+											//row - aqui você possui todos os atributos da sua linha
+											//Basta criar seu botão e como string e retornar;
+											//var deleteBtn = '<button type="button" ' + row.id + '" ></button>'
+
+											var botoes = '<button id="btnSomar" title="Somar" class="btn btn-info btn-sm" type="button" onclick="Somar(' + row.Id + ')" ><i class="fa fa fa-edit fa-sm"></i>+</button>&ensp;'
+												+ '<button id="btnSubtrair" title="Subtrair" class="btn btn-info btn-sm" type="button" onclick="Subtrair(' + row.Id + ')" ><i class="fa fa fa-edit fa-sm"></i>-</button>&ensp;'
+												+ '<button id="btnExcluir" class="btn btn-info btn-sm" type="button" onclick="ExcluirCaminhao(' + row.Id + ')" ><i class="fa fa fa-edit fa-sm"></i>Excluir</button>&ensp;'
+												+ '<button id="btnEditar" class="btn btn-info btn-sm" type="button" onclick="EditarCaminhao(' + row.Id + ')" ><i class="fa fa fa-delete fa-sm"></i>Editar</button>'
+
+											return botoes;
+										}
+									}
+								]
+							});
+					}
+				});
+			}
+
+			function Somar(idModelo) {
+
+				$.ajax({
+					url: '../Home/SomarCaminhao?idModelo=' + idModelo,
+					type: 'post',
+					datatype: 'json',
+					success: function (data) {
+						var result_of_parsing_json = JSON.parse(data);
+						BuscaCaminhao();
+					}
+				});
+			}
+
+			function Subtrair(idModelo) {
+
+				$.ajax({
+					url: '../Home/SubtrairCaminhao?idModelo=' + idModelo,
+					type: 'post',
+					datatype: 'json',
+					success: function (data) {
+						var result_of_parsing_json = JSON.parse(data);
+						BuscaCaminhao();
+					}
+				});
+			}
+
+			function ExcluirCaminhao(idModelo) {
+				$.ajax({
+					url: '../Home/ExcluirCaminhao?idModelo=' + idModelo,
+					type: 'post',
+					datatype: 'json',
+					success: function (data) {
+						var result_of_parsing_json = JSON.parse(data);
+						BuscaCaminhao();
+					}
+				});
+			}
+
+			function Gravar() {
+
+				var modelo = $('#cboUniModelo').val();
+				var anoFabricacao = $('#txtAnoFab').val();
+				var anoModelo = $('#txtAnoMod').val();
+
+				if (modelo == "-- Selecione --" || anoFabricacao == "" || anoModelo == "") {
+
+					alert("Favor Preencha todos os campos !");
+				}
+				else {
+
+					$.ajax({
+						url: '../Home/GravarCaminhao?modelo=' + modelo + '&anoFabricacao=' + anoFabricacao + '&anoModelo=' + anoModelo,
+						type: 'post',
+						datatype: 'json',
+						success: function (data) {
+							alert("Caminhao Cadastrado com Sucesso !");
+							BuscaCaminhao();
+						}
+					});
+				}
+			}
+
+			function EditarCaminhao(Id) {
+
+				$.ajax({
+					url: '../Home/BuscaCaminhaoId?idModelo=' + Id,
+					type: 'post',
+					datatype: 'json',
+					success: function (data) {
+						var result_of_parsing_json = JSON.parse(data);
+
+						$('#lblcodCaminhao').text(result_of_parsing_json[0]["Id"]);
+						$('#cboModeloEdit').val(result_of_parsing_json[0]["Modelo"]);
+						$('#txtEditAnoFab').val(result_of_parsing_json[0]["Ano_Fabricacao"]);
+						$('#txtEditAnoModelo').val(result_of_parsing_json[0]["Ano_Modelo"]);
+						$('#modalEditaCaminhao').modal('show');
+
+					}
+				});
+
+			}
+
+			function GravarEditarCaminhao() {
+
+				var id = $('#lblcodCaminhao').text();
+				var modelo = $('#cboModeloEdit').val();
+				var anoFabricacao = $('#txtEditAnoFab').val();
+				var anoModelo = $('#txtEditAnoModelo').val();
+
+				if (modelo == "-- Selecione --" || anoFabricacao == "" || anoModelo == "") {
+
+					alert("Favor Preencha todos os campos !");
+				}
+				else {
+
+					$.ajax({
+						url: '../Home/EditarCaminhao?idModelo=' + id + '&modelo=' + modelo + '&anoFabricacao=' + anoFabricacao + '&anoModelo=' + anoModelo,
+						type: 'post',
+						datatype: 'json',
+						success: function (data) {
+							alert("Caminhao Alterado com Sucesso !");
+							$('#modalEditaCaminhao').modal('hide');
+							BuscaCaminhao();
+						}
+					});
+				}
+			}
+	</script>
+
+}
+
